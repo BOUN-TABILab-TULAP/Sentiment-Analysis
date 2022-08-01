@@ -6,61 +6,41 @@ Cem Rıfkı Aydın, Tunga Güngör, Ali Erkan. CICLing 2019
 
 This approach attempts to model word and document embeddings for the binary sentiment classification task in Turkish and English. This study can be adapted to other languages with minor changes.
 
-## Requirements
-
-- Python 2.x
-- Python 3.7 or a newer version of Python
-- gensim
-- nltk
-- numpy
-- pandas
-- scikit-fuzzy
-- scikit_learn
-- scipy
-- turkish.deasciifier
-
-In this study, we have made use of the official Turkish dictionary (TDK). On account of copyright issues, I am not allowed to share the whole of it online. In order to get a copy of the full dictionary to employ it, please send a request e-mail to `cemrifkiaydin@gmail.com`. 
-We also utilised both Python 2.x and Python 3.7 versions. The reason we depended on the Python 2.x version as well is that external tools (i.e. Haşim Sak's morphological parser and disambiguator tools) cannot work with Python 3. The ".so" file built by the Python 2.x version we leveraged could not be converted to Python 3. Also, the use of Python 3.7 or a newer version is required. The command `python3` must refer to the use of Python 3.7 or a newer version, and `python` should refer to Python 2.x. In the input folder, you can change the file you want to train or evaluate your model on. The path to it can also be specified by specific commands explained below. We rely on the use of a .csv file, and the columns are categorised (header) as "Text" and "Sentiment". We thank Haşim Sak for providing us with his morphological parser and disambiguator tools. We also thank Cumali Türkmenoğlu for providing us with the Turkish movie dataset. In our study, we used only a subset of the whole corpus.
-
-## Execution
-
-Execute the file `runner.py` to train word and document embeddings and evaluate the model.
-The following are the command-line arguments:
-- `--command`: set command, which can be `cross_validate`, `train_and_test_separately`, or `predict`
-- `--language`: set language, which can be `english` or `turkish`
-- `--embedding_type`: set embedding type, which can be `corpus_svd`, `lexical_svd`, `supervised`, `ensemble`, `clustering`, or `word2vec`
-- `--embedding_size`: set embedding size
-- `--cv_number`: set number of folds for cross-validation
-- `--use_3_review_polarities`: set whether or not you use three polarities on a review-basis
-- `--file_path`: set file path for the `cross-validation` and `prediction` cases
-- `--training_path`: set training file path in case the test dataset is also specified in the below command
-- `--test_path`: set test file path in case the training dataset is also specified in the above command
-- `--model_path`: set path to the model trained previously. Be careful in the sense that the same model parameters should be chosen for both the training and test sets
-
-#### Setup with virtual environment (Python 3):
--  python3 -m venv my_venv
--  source my_venv/bin/activate
-
-Install the requirements:
--  pip3 install -r requirements.txt
-
-If everything works well, you can run the example usage given below.
-
-### Example Usage:
-- The following guide shows an example usage of the model in generating word and document vectors and performing the evaluation.
-- Instructions
-      
-      1. Change directory to the location of the source code
-      2. Run the instructions in "Setup with virtual environment (Python 3)"
-      3. Run the runner.py file with chosen command parameters. Some examples are given below
-
-Examples:
+## How to run using Docker
+1. Clone the repo
+```bash
+git clone https://github.com/BOUN-TABILab-TULAP/Sentiment-Analysis.git
 ```
-python3 runner.py --command cross_validate --language turkish --embedding_type corpus_svd --embedding_size 50 --file_path input/Sentiment_dataset_turk.csv
-python3 runner.py --command predict --language turkish --embedding_type ensemble --file_path input/Sentiment_dataset_turk.csv
-python3 runner.py --command train_and_test_separately --language turkish --embedding_type ensemble --embedding_size 200 --training_path input/Turkish_twitter_train.csv --test_path input/Turkish_twitter_test.csv
-python3 runner.py --command cross_validate --language english --embedding_type supervised --file_path input/Sentiment_dataset_eng.csv
+2. Launch a terminal in the root directory of the repo and build the Docker image where
+- `-t` is the tag for the Docker image. You can provide any name you want
+- `.` is the relative path to the Dockerfile 
+```bash
+docker build -t sentiment-analysis .
 ```
+3. Run the Docker image where
+- `-d` indicates "detach", let the container run in the background
+- `-p 5000:5000` indicates mapping port 5000 of the container to the port 5000 of the host.
+```bash
+docker run -d -p 5000:5000 sentiment-analysis
+```
+4. Send a POST request
+- via curl
+    ```bash
+    curl -X POST http://localhost:5000/evaluate 
+   -H 'Content-Type: application/json' 
+   -d '{"textarea":"Yagmur yagarken lutfen kosturmayalim"}'
+
+   > {'text': 'Negative'}
+    ```
+- via Python's requests library
+    ```python
+    import requests
+    res = requests.post('http://localhost:5000/evaluate', json={'textarea':'Yagmur yagarken lutfen kosturmayalim'})
+    print(res.json())
+
+    > {'text': 'Negative'}
+    ```
+
 ## Citation
 If you find this code useful, please cite the following in your work:
 ```
